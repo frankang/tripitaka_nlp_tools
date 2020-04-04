@@ -90,7 +90,7 @@ if __name__ == '__main__':
     filelist = []
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file.endswith('.out'):
+            if file.endswith('.txt'):
                  filelist.append(os.path.join(root, file))
     print "file lists built"
 
