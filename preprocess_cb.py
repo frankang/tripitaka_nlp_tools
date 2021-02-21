@@ -6,16 +6,16 @@ import glob
 import re
 from collections import OrderedDict, defaultdict
 
-class OrderedDefaultDict(OrderedDict, defaultdict):
-    def __init__(self, default_factory=None, *args, **kwargs):
-        #in python3 you can omit the args to super
-        super(OrderedDefaultDict, self).__init__(*args, **kwargs)
-        self.default_factory = default_factory
+#class OrderedDefaultDict(OrderedDict, defaultdict):
+#    def __init__(self, default_factory=None, *args, **kwargs):
+#        #in python3 you can omit the args to super
+#        super(OrderedDefaultDict, self).__init__(*args, **kwargs)
+#        self.default_factory = default_factory
 
 # for multi processes
 from multiprocessing import Pool
 
-tup  =  (u"，",u"。",u".",u"？",u"?",u"」",u"：",u"』")
+tup  =  ("，","。",".","？","?","」","：","』")
 
 # def processFile(filecursor):
 def processFile(fileaddr):
@@ -28,61 +28,48 @@ def processFile(fileaddr):
     # try: 
     #print fileaddr 
     with open(fileaddr) as f :
-        contents = OrderedDefaultDict(list)
+        contents = defaultdict(list)
         lines = f.read()
-        lines = lines.lower().decode("utf8")
+        lines = lines.lower()
         if len(lines) < 4200: 
-            print "skipping file", fileaddr
+            print("skipping short file ", fileaddr)
             return
         # article_word_counts_median = len(lines) /2
-        # if lines[article_word_counts_median:article_word_counts_median+900].count(u"。") < 15: return
-        if lines[:2000].count(u"□") > 20:
-            print "skipping file: ", fileaddr
-        if lines[:2000].count(u"。") < 5 or lines[:2000].count(u"，") < 5: 
-            print "skipping file: ", fileaddr
+        # if lines[article_word_counts_median:article_word_counts_median+900].count("。") < 15: return
+        if lines[:2000].count("□") > 20:
+            print("#abc skipping file:  ", fileaddr)
+        if lines[:2000].count("。") < 5 or lines[:2000].count("，") < 5: 
+            print("#bcd skipping file: ", fileaddr)
             return #ignore no mark file
-        if lines[-2000:].count(u"。") < 5 or lines[:2000].count(u"，") < 5: 
-            print "skipping file: ", fileaddr
+        if lines[-2000:].count("。") < 5 or lines[:2000].count("，") < 5: 
+            print("#cdf skipping file: ", fileaddr)
             return #ignore no mark file
-        lines = re.sub(ur"\[[^\]^\[]{0,20}?>(.*?)\]", "\\1", lines)
-        #lines = re.sub(ur'\[([^;]*);[^\] ]{0,20}?\]','\\1', lines) #[䠒跪;胡跪]
-        lines = re.sub(ur"\[\d+\]", "", lines) #[04]
-        lines = re.sub(ur"\[＊\]", "", lines) #[*]
-        lines = re.sub(ur"<mj>", "", lines) #[*]
-        lines = re.sub(ur"<j>|<t>|<u>", "", lines) #[*]
-        lines = re.sub(ur"<t,0,1>", u"，", lines) #[*]
-        #lines = strQ2B(lines.decode("utf8")).encode("utf8")
-        lines = re.sub(ur'◎','',lines)
-        #lines = re.sub(ur'<\w{0,10}?>','',lines)
-        lines = re.sub(ur'\[\d+[a-z]{0,10}?\]','',lines) #heritage
-        lines = re.sub(ur'□',u'❥',lines) #heritage
+        #lines = re.sub(r'\[([^;]*);[^\] ]{0,20}?\]','\\1', lines) #[䠒跪;胡跪]
+        lines = re.sub(r"\[\d+\]", "", lines) #性性空聖性[05]聖智為首
+        lines = re.sub(r"\[＊\]", "", lines) #[*]
+        lines = re.sub("<mj \d{0,5}>", "", lines) #[*] <mj 006>,卷分界
+        lines = re.sub(r"<j>|<t>|<u>", "", lines) #[*]
+        lines = re.sub(r"<t,0,1>", "，", lines) #[*]
+        #lines = re.sub(r'◎','',lines)
+        #lines = re.sub(r'<\w{0,10}?>','',lines)
+        lines = re.sub(r'\[\d+[a-z]{0,10}?\]','',lines) #heritage
+        #lines = re.sub(r'□',u'❥',lines) #heritage 不主动替换unk
 
-        lines = re.sub(ur"\[[^\]^\[]{1,8}?[@+*\/-][^\]^\[]{1,8}?\]",u"❣", lines) #[p23]
-        lines = re.sub(ur"\[[^\]^\[]{0,20}?>(.*?)\]", "\\1", lines)
+        #lines = re.sub(r"\[[^\]^\[]{1,8}?[@+*\/-][^\]^\[]{1,8}?\]","❣", lines) #[p23]
+        lines = re.sub(r"\[[^\]^\[]{0,20}?>(.*?)\]", "\\1", lines) #[却>劫]
         lines = lines.split("\n")
 
         grouped_lines = filter_and_add_contents(lines, contents)
-        # print "before process_article"
-        # print grouped_lines
         process_article(fileaddr, grouped_lines)
-    # except Exception as e:
-    #     exc_type, exc_obj, exc_tb = sys.exc_info()
-    #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    #     print(exc_type, fname, exc_tb.tb_lineno)
-    #     print "error", fileaddr
-            # file_content = {}
-            # content_encoding = checkEncoding(content)
-            # if not content_encoding :
-            #     continue
-            # file_content["content"] = content.decode(content_encoding, 'ignore').encode("utf-8")
 
 def filter_and_add_contents(lines, contents):
     printed = False
     for line in lines:
         if len(line) < 10: continue
-        if line[8] != "_": 
+        if line[8] != "_": #ZW08n0067_p0021a07_
+            raise f"the 8th position isn't _, line content {line}"
             if not printed:
-                print line
+                print(line)
                 printed = True
             continue
         article = line[0:8]
@@ -91,7 +78,7 @@ def filter_and_add_contents(lines, contents):
         if len(line_content) == 0: continue
         if line_content[0] == "#":
             if not printed: 
-                print line
+                print(line)
                 printed = True
             continue
         contents[article].append((line_type, line_content))
@@ -102,7 +89,7 @@ def filter_and_add_contents(lines, contents):
 def process_article(fileaddr, contents):
     saved_addr = fileaddr + ".out"
     h = open(saved_addr,"w+")
-    for key, items in contents.iteritems():
+    for key, items in contents.items():
         if len(items) < 20 : continue
         #saved_addr = fileaddr + "."+ key + ".out"
         # h = open(saved_addr,"w+")
@@ -136,23 +123,23 @@ def process_article(fileaddr, contents):
                     continue
 
                 complete_sent = "".join(j[1] for j in i)
-                complete_sents=re.split(ur"<p>|<z>|<p,1>", complete_sent)
+                complete_sents=re.split(r"<p>|<z>|<p,1>", complete_sent)
                 for j in complete_sents:
-                    if not j.endswith(tup):
-                        j = j + u"。"
-                    j = re.sub(ur"(?<=[\u4e00-\u9fff])[\s\u3000\t]+(?=[\u4e00-\u9fff])",u"，", j)
-                    j = re.sub(ur"[\s\u3000\t]+",u"", j)
-                    h.write(j.encode("utf8")+"\n")
+                    #if not j.endswith(tup):
+                    #    j = j + "。"
+                    j = re.sub(r"(?<=[\u4e00-\u9fff])[\s\u3000\t]+(?=[\u4e00-\u9fff])","，", j)
+                    j = re.sub(r"[\s\u3000\t]+","", j)
+                    h.write(j+"\n")
 
 
             if i[0][0][0] == "s":
                 def add_period(sent):
-                    return sent+u"，" if not sent.endswith(tup) else sent
+                    return sent+"，" if not sent.endswith(tup) else sent
                 
                 complete_sent = "".join(add_period(j[1]) for j in i)
-                complete_sent = re.sub(ur"(?<=[\u4e00-\u9fff])[\t\s\u3000]+(?=[\u4e00-\u9fff])",u"，",complete_sent)
-                complete_sent = re.sub(ur"[\s\u3000\t]+",u"",complete_sent)
-                h.write(complete_sent.encode("utf8")+"\n")
+                complete_sent = re.sub(r"(?<=[\u4e00-\u9fff])[\t\s\u3000]+(?=[\u4e00-\u9fff])","，",complete_sent)
+                complete_sent = re.sub(r"[\s\u3000\t]+","",complete_sent)
+                h.write(complete_sent+"\n")
 
     h.close()#sys.exit(0)
 
@@ -165,8 +152,8 @@ def split_by_article(lines):
     if lines[2].find("_",6,13) == lines[-2].find("_",6,13):
         uniformity = True
     else:
-        print "malform text!!!!!\n","file content is \n", lines[2]
-        print "need to use reg to extract the id for each line"
+        print("malform text!!!!!\n","file content is \n", lines[2])
+        print("need to use reg to extract the id for each line")
     #assert uniformity
 
     id_end_pos = lines[2].find("_",6,13) 
@@ -212,23 +199,6 @@ def remove_no_xb_article(grouped):
         grouped.pop(i,None)
 
     return grouped
-
-
-
-def process_content(groups):
-    
-    for k in groups:
-        article_content = deque()
-
-        for line in groups[k]:
-            # print line[0],line[1]
-            new_line = process_line(line[0],line[1])
-            article_content.append(new_line)
-        
-        # article_content = "".join()
-        print "%slll%s" % (k,"".join(article_content))
-
-
 
 
 def process_line(l_type,l_content):#l = line
@@ -289,16 +259,16 @@ if __name__ == '__main__':
     if len(sys.argv)>1 :
         path=sys.argv[1]
     else :
-        print "usage: preprocess.py dirname"
+        print("usage: preprocess.py dirname")
         sys.exit(1)
-    print "building file lists..."
+    print("building file lists...")
     # filelist = glob.glob(path+"/*")
     filelist = []
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.endswith('new.txt'):
                  filelist.append(os.path.join(root, file))
-    print "file lists built"
+    print("file lists built")
     # print "init language detector ..."
     # file_extension = "/*.[Tt][Xx][Tt]"
 
@@ -321,12 +291,12 @@ if __name__ == '__main__':
     # for cursor in sutra_file_info.find({"finished":False}):
     #     unfinished_file_list.append(cursor)
     unfinished_file_list = filelist
-    print "starting process files, the default process number is 2, increase it "
-    #p = Pool(2)
-    print "i am here!!before mapping"
-    #p.map(processFile, unfinished_file_list)
+    workers = 16
+    print("starting process files, the default process number is {}".format(workers))
+    p = Pool(16)
+    print("i am here!!before mapping")
+    p.map(processFile, unfinished_file_list)
     for item in unfinished_file_list:
-    #     print item
         processFile(item)
     #p.map(processFile, unfinished_file_list)
 
