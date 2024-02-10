@@ -1,0 +1,11 @@
+python 1add_space.py /home/kf/data/data_0704/tv_0402.txt zh
+python 1add_space.py /home/kf/data/data_0704/data_skqs.txt.splitted zh
+python 2generate_src_tgt.py ~/data/data_0704/data_skqs.txt.splitted.padded
+python 2generate_src_tgt.py ~/data/data_0704/tv_0402.txt.padded
+python non-replacement-sample.py /home/kf/data/data_0704/tv_0402.txt.padded.target 4840820 10000
+python non-replacement-sample.py /home/kf/data/data_0704/tv_0402.txt.padded.source 4840820 10000
+cat tv_0402.txt.padded.source.train data_skqs.txt.splitted.padded.source > train.zh
+cat tv_0402.txt.padded.target.train data_skqs.txt.splitted.padded.target > train.en
+mv tv_0402.txt.padded.target.valid valid.en
+mv tv_0402.txt.padded.source.valid valid.zh
+

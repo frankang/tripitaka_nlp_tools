@@ -47,11 +47,13 @@ def process_single_file(filepath):
     #s = normalize(s.lower().decode("utf8"))
     s = normalize(s)
     s = re.sub("■","￭", s)
-    s = re.sub("\u200b|\u000b|\u00A0|\u2029|\u2028|\ufeff"," ", s)
+    s = re.sub("\u200b|\u000b|\u00A0|\u2029|\u2028|\ufeff","", s)
     s = re.sub('。+','。',s)
+    #s = re.sub('[ \u3000]+','',s) 
+    s = re.sub('\s+','',s) #remove double spaces
     s = re.sub('，+','，',s)
-    s = re.sub('(，|。|？|”|“|’|‘|；|：|》|《|（|）|、|□|※|>|◎|○|●|⊙|‖|‡|▭|▧|∩|∪|×|│|△|≡|◇|◆|·|★)',' \\1 ',s)
-    s = re.sub('[˗֊‐‑‒–⁃⁻₋−]+', '-', s)  # normalize hyphens
+    #s = re.sub('(，|。|？|”|“|’|‘|；|：|》|《|（|）|、|□|※|>|◎|○|●|⊙|‖|‡|▭|▧|∩|∪|×|│|△|≡|◇|◆|·|★)',' \\1 ',s)
+    #s = re.sub('[˗֊‐‑‒–⁃⁻₋−]+', '-', s)  # normalize hyphens
     s = re.sub('-{2,}', ' -- ', s)  # normalize hyphens
     s = re.sub('—+', ' ——  ', s)  # 破折号————
     #s = re.sub('—{3,}', ' -- ', s)  # 破折号————
@@ -71,7 +73,6 @@ def process_single_file(filepath):
     print("begin substituting han characters")
     s = re.sub('([\u2630-\U000fffff])',' \\1 ',s)
     s = re.sub('([\u0000-\u0009])','',s)
-    s = re.sub('[ \u3000]+',' ',s) #remove double spaces
     #sys.exit()
     # replacement
     
